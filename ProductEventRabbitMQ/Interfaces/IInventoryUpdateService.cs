@@ -1,9 +1,10 @@
 ﻿using ProductEventRabbitMQ.Model;
+using ProductEventRabbitMQ.Models;
 
 namespace ProductEventRabbitMQ.Interfaces
 {
     public interface IInventoryUpdateService
     {
-        Task UpdateInventoryAsync(Product product);
+        Task UpdateInventoryAsync(Order order);
     }
 }

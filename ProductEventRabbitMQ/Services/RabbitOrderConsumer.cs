@@ -1,9 +1,12 @@
 ﻿using ProductEventRabbitMQ.Data;
 using ProductEventRabbitMQ.Interfaces;
 using ProductEventRabbitMQ.Model;
+using ProductEventRabbitMQ.Models;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
+using System.Text.Json;
+using Microsoft.AspNetCore.Connections;
 
 namespace ProductEventRabbitMQ.Services
 {
@@ -62,11 +65,16 @@ namespace ProductEventRabbitMQ.Services
             {
                 var body = eventArgs.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
-                var product = System.Text.Json.JsonSerializer.Deserialize<Product>(message);
+                var order = JsonSerializer.Deserialize<Order>(message);
                 // Create new scope for each message
                 using var scope = _scopeFactory.CreateScope();
-                var inventoryService = scope.ServiceProvider.GetRequiredService<InventoryUpdateService>();
-                await inventoryService.UpdateInventoryAsync(product);
+                var inventoryService = scope.ServiceProvider.GetRequiredService<IInventoryUpdateService>();
+                await inventoryService.UpdateInventoryAsync(order);
+
+                await channel.BasicAckAsync(
+                    eventArgs.DeliveryTag, 
+                    multiple: false
+                );
             };
 
             await channel.BasicConsumeAsync(
